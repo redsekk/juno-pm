@@ -3,8 +3,7 @@
 > Module 2 · Prototype. The working build that tests your idea, made with Lovable.
 
 ## Prototype link
-
-[PASTE YOUR LOVABLE PUBLIC LINK HERE]
+https://crisp-visual-sync.lovable.app
 
 All tickets, customers, dates and sources in the prototype are simulated.
 
