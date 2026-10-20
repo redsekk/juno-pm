@@ -10,9 +10,9 @@ Sales and CS reps at RocketShip ask product and tech questions in Slack and wait
 
 | Surface | Specification |
 |---|---|
-| 01 Context | Reads the Product Quarterly Roadmap, Engineering Capacity Note, Sales Pipeline Snapshot (account, blocker and status only) and the #backend-monitoring thread. Roadmap and Engineering Note are read live; if a source is unreachable, Juno says so and tags the PM. |
+| 01 Context | Reads the Product Quarterly Roadmap, Engineering Capacity Note, Sales Pipeline Snapshot (account, blocker and status only) and the #backend-monitoring thread, fetched on demand. Roadmap and Engineering Note are read live; if a source is unreachable, Juno says so and tags the PM. |
 | 02 Tools | Six tools: four reads (search_roadmap, read_engineering_note, read_pipeline_snapshot, search_slack_channel) and two sends (post_reply_in_thread, tag_pm_in_thread). No edit, DM or promise-date tool. |
-| 03 Loop | Ceiling of 5 tool calls per question. Stops and tags the PM after two failed searches or on conflicting sources. Under 10 seconds, $0.05 per question ceiling. |
+| 03 Loop | Ceiling of 5 tool calls per question. Stops and tags the PM after two failed searches or on conflicting sources. No latency or cost target in this version. |
 | 04 Memory | Team-level log of questions and answers, one entry per thread. A stored answer is trusted only while its cited sources are unchanged. PM corrections outrank everything. |
 | 05 Permissions | read auto · draft auto · write blocked · send auto (internal threads, sourced content only). |
 | 06 Verification | Every status claim must match a status field in a document retrieved this session. On failure: "I could not confirm this", a PM tag and a "do not promise" label. |
@@ -22,6 +22,8 @@ Sales and CS reps at RocketShip ask product and tech questions in Slack and wait
 **Required sources, and exclusions**
 
 Reads: Product Quarterly Roadmap, Engineering Capacity Note, Sales Pipeline Snapshot (account, blocker and status only, no ARR or contract values), and the #backend-monitoring Slack thread (known incidents).
+
+Context method: the role and rules are put in the prompt (the skill file). The four sources above are fetched on demand through the read tools, so Juno only sees what the question needs. There is no retrieve-and-inject index, and no loading of whole documents by default.
 
 Left out on purpose: user interview transcript and support ticket (too noisy, risk of exposing confidential detail to the wrong audience); CEO email and press claims (unscoped, not a source of truth); staffing details such as leave (personal, irrelevant to the question); the Product Strategy one-pager (Juno does not prioritize, the PM does).
 
@@ -54,11 +56,11 @@ Not given on purpose: editing the roadmap or tickets, DMs, posting in customer-f
 
 **Turn ceiling and escalation**
 
-Ceiling: 5 tool calls per question (up to 3 reads, 1 reply, 1 PM tag). Stops and tags the PM if two searches find nothing reliable or if sources conflict.
+Ceiling: 5 tool calls per question (up to 3 reads, 1 reply, 1 PM tag). Stops and tags the PM if two searches find nothing reliable or if sources conflict. If the ceiling is hit, Juno returns its best answer labelled "turn limit reached" and tags the PM, never a silent cut-off.
 
 **Latency and cost target**
 
-Under 10 seconds almost every time. Cost ceiling $0.05 per question (assumption, adjust to real volume). If the turn ceiling of 5 is hit, Juno returns its best answer labelled "turn limit reached" and tags the PM, never a silent cut-off.
+Not defined in this version. We do not yet know the real tokens or seconds per question, so any number would be a guess. The turn ceiling above is the only cost control for now: each question is capped at 5 tool calls, so the cost of one question cannot grow without limit. Next step: run a sample of real questions, record the tool calls and time per question, then set latency and cost targets from those measurements.
 
 ## 04 Memory · Data Requirements
 
